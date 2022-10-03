@@ -20,10 +20,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     minlength: 2,
     maxlength: 30,
+    required: true,
   },
 });
 
-userSchema.methods.toJSON = () => {
+userSchema.methods.toJSON = function () {
   const user = this.toObject();
 
   delete user.password;
