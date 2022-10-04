@@ -4,17 +4,37 @@ require('dotenv').config();
 
 const { PORT = 3000 } = process.env;
 const app = express();
+const cors = require('cors');
+
+app.use(
+  cors({
+    origin: 'http://localhost:3000',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    allowedHeaders: 'Content-Type,Authorization',
+    credentials: true,
+  }),
+);
 
 const cookieParser = require('cookie-parser');
 const path = require('path');
 const { errors, celebrate, Joi } = require('celebrate');
 const { UserRoutes } = require('./routes/users');
+const { MovieRoutes } = require('./routes/movies');
 const { createUser, login } = require('./controllers/users');
 const auth = require('./middlewares/auth');
+const { requestLogger, errorLogger } = require('./middlewares/logger');
+const ServerError = require('./errors/ServerError');
+const NotFoundError = require('./errors/NotFoundError');
 
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+app.use(requestLogger);
+
+app.use('*', (req, res, next) => {
+  next(new NotFoundError('Страница не найдена'));
+});
 
 app.post('/signup', celebrate({
   body: Joi.object().keys({
@@ -34,11 +54,14 @@ app.post('/signin', celebrate({
 app.use(auth);
 
 app.use(UserRoutes);
+app.use(MovieRoutes);
 
 app.delete('/logout', (req, res) => {
   res.clearCookie('jwt');
   return res.status(200).send({ message: 'cookie delete' });
 });
+
+app.use(errorLogger);
 
 app.use(errors());
 
@@ -61,7 +84,7 @@ async function main() {
     });
     await app.listen(PORT);
   } catch (error) {
-    console.log(error.message);
+    throw new ServerError('Ошибка на сервере');
   }
 }
 

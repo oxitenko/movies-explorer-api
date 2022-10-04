@@ -7,7 +7,7 @@ UserRoutes.get('/users/me', getUserInfo);
 UserRoutes.patch('/users/me', celebrate({
   body: Joi.object().keys({
     name: Joi.string().min(2).max(30),
-    email: Joi.string().email({ minDomainSegments: 2, tlds: { allow: ['com', 'ru'] } }),
+    email: Joi.string().email(),
   }),
 }), updateUser);
 
