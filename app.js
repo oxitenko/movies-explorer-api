@@ -1,28 +1,36 @@
 const express = require('express');
 const mongoose = require('mongoose');
 require('dotenv').config();
-
-const { PORT = 3000 } = process.env;
-const app = express();
+const { errors } = require('celebrate');
+const path = require('path');
+const cookieParser = require('cookie-parser');
 const cors = require('cors');
+const helmet = require('helmet');
+const {
+  SERV_ERR,
+  NOTFOUND_ERR,
+  PORT_NUMBER,
+  ALLOW_ORIGIN,
+  DATA_BASE,
+} = require('./utils/utils');
+
+const { PORT = PORT_NUMBER } = process.env;
+const app = express();
 
 app.use(
   cors({
-    origin: 'http://localhost:3000',
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    allowedHeaders: 'Content-Type,Authorization',
+    origin: ALLOW_ORIGIN,
     credentials: true,
   }),
 );
 
-const cookieParser = require('cookie-parser');
-const path = require('path');
-const { errors, celebrate, Joi } = require('celebrate');
 const { UserRoutes } = require('./routes/users');
 const { MovieRoutes } = require('./routes/movies');
 const { createUser, login } = require('./controllers/users');
 const auth = require('./middlewares/auth');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
+const { errorsGlobal } = require('./middlewares/errorsGlobal');
+const { validationUserCreate, validationUserSignIn } = require('./middlewares/validation');
 const ServerError = require('./errors/ServerError');
 const NotFoundError = require('./errors/NotFoundError');
 
@@ -32,24 +40,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(requestLogger);
 
-app.use('*', (req, res, next) => {
-  next(new NotFoundError('Страница не найдена'));
-});
+app.use(helmet());
 
-app.post('/signup', celebrate({
-  body: Joi.object().keys({
-    name: Joi.string().min(2).max(30).required(),
-    email: Joi.string().email().required(),
-    password: Joi.string().required(),
-  }),
-}), createUser);
+app.post('/signup', validationUserCreate, createUser);
 
-app.post('/signin', celebrate({
-  body: Joi.object().keys({
-    email: Joi.string().required().email(),
-    password: Joi.string().required(),
-  }),
-}), login);
+app.post('/signin', validationUserSignIn, login);
 
 app.use(auth);
 
@@ -65,26 +60,21 @@ app.use(errorLogger);
 
 app.use(errors());
 
-app.use((err, req, res, next) => {
-  const { statusCode = 500, message } = err;
+app.use(errorsGlobal);
 
-  res.status(statusCode).send({
-    message: statusCode === 500
-      ? 'На сервере произошла ошибка'
-      : message,
-  });
-  next(err);
+app.use('*', (req, res, next) => {
+  next(new NotFoundError(NOTFOUND_ERR));
 });
 
 async function main() {
   try {
-    await mongoose.connect('mongodb://localhost:27017/bitfilmsdb', {
+    await mongoose.connect(DATA_BASE, {
       useNewUrlParser: true,
       useUnifiedTopology: false,
     });
     await app.listen(PORT);
   } catch (error) {
-    throw new ServerError('Ошибка на сервере');
+    throw new ServerError(SERV_ERR);
   }
 }
 

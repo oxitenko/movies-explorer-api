@@ -6,6 +6,13 @@ const NotFoundError = require('../errors/NotFoundError');
 const BadRequestError = require('../errors/BadRequestError');
 const AuthError = require('../errors/AuthError');
 const ConflictError = require('../errors/ConflictError');
+const {
+  SERV_ERR,
+  NOTFOUND_ERR,
+  BAD_REQ_ERR,
+  CONFLICT_ERR,
+  AUTH_ERR_LOGIN,
+} = require('../utils/utils');
 
 const { NODE_ENV, JWT_SECRET } = process.env;
 
@@ -14,11 +21,11 @@ const getUserInfo = async (req, res, next) => {
   try {
     const user = await User.findById(id);
     if (!user) {
-      return next(new NotFoundError('Пользователь не найден'));
+      return next(new NotFoundError(NOTFOUND_ERR));
     }
     return res.status(200).send(user);
   } catch (err) {
-    return next(new ServerError('Ошибка на сервере'));
+    return next(new ServerError(SERV_ERR));
   }
 };
 
@@ -32,14 +39,14 @@ const updateUser = async (req, res, next) => {
       { new: true, runValidators: true },
     );
     if (!user) {
-      return next(new NotFoundError('Пользователь не найден'));
+      return next(new NotFoundError(NOTFOUND_ERR));
     }
     return res.status(200).send(user);
   } catch (err) {
     if (err.name === 'ValidationError') {
-      return next(new BadRequestError('Некорректные данные пользователя'));
+      return next(new BadRequestError(BAD_REQ_ERR));
     }
-    return next(new ServerError('Ошибка на сервере'));
+    return next(new ServerError(SERV_ERR));
   }
 };
 
@@ -53,12 +60,12 @@ const createUser = async (req, res, next) => {
     return res.status(200).send(user);
   } catch (err) {
     if (err.name === 'ValidationError') {
-      return next(new BadRequestError('Некорректные данные пользователя'));
+      return next(new BadRequestError(BAD_REQ_ERR));
     }
     if (err.code === 11000) {
-      return next(new ConflictError('Пользователь с таким email уже существует'));
+      return next(new ConflictError(CONFLICT_ERR));
     }
-    return next(new ServerError('Ошибка на сервере'));
+    return next(new ServerError(SERV_ERR));
   }
 };
 
@@ -68,11 +75,11 @@ const login = async (req, res, next) => {
   try {
     const user = await User.findOne({ email }).select('+password');
     if (!user) {
-      return next(new AuthError('Неправильные почта или пароль'));
+      return next(new AuthError(AUTH_ERR_LOGIN));
     }
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) {
-      return next(new AuthError('Неправильные почта или пароль'));
+      return next(new AuthError(AUTH_ERR_LOGIN));
     }
 
     const token = jwt.sign(
@@ -86,7 +93,7 @@ const login = async (req, res, next) => {
     });
     return res.status(200).send(user);
   } catch (err) {
-    return next(new ServerError('Ошибка на сервере'));
+    return next(new ServerError(SERV_ERR));
   }
 };
 

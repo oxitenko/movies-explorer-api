@@ -3,13 +3,19 @@ const ServerError = require('../errors/ServerError');
 const BadRequestError = require('../errors/BadRequestError');
 const NotFoundError = require('../errors/NotFoundError');
 const ForbiddenError = require('../errors/ForbiddenError');
+const {
+  SERV_ERR,
+  BAD_REQ_ERR,
+  NOTFOUND_ERR,
+  FORBIDDEN_ERR,
+} = require('../utils/utils');
 
 const getMovies = async (req, res, next) => {
   try {
     const movie = await Movie.find({});
     return res.status(200).send(movie);
   } catch (err) {
-    return next(new ServerError('Ошибка на сервере'));
+    return next(new ServerError(SERV_ERR));
   }
 };
 
@@ -46,9 +52,9 @@ const createMovie = async (req, res, next) => {
     return res.status(200).send(movie);
   } catch (err) {
     if (err.name === 'ValidationError') {
-      return next(new BadRequestError('Некорректные данные фильма'));
+      return next(new BadRequestError(BAD_REQ_ERR));
     }
-    return next(new ServerError('Ошибка на сервере'));
+    return next(new ServerError(SERV_ERR));
   }
 };
 
@@ -58,17 +64,17 @@ const deleteMovie = async (req, res, next) => {
   try {
     const movie = await Movie.findOneAndDelete(movieId);
     if (!movie) {
-      return next(new NotFoundError('Такого фильма нет'));
+      return next(new NotFoundError(NOTFOUND_ERR));
     }
     if (id !== movie.owner) {
-      return next(new ForbiddenError('Не твой список фильфом'));
+      return next(new ForbiddenError(FORBIDDEN_ERR));
     }
     return res.status(200).send(movie);
   } catch (err) {
     if (err.name === 'CastError') {
-      return next(new BadRequestError('Некорректные данные запроса'));
+      return next(new BadRequestError(BAD_REQ_ERR));
     }
-    return next(new ServerError('Ошибка на сервере'));
+    return next(new ServerError(SERV_ERR));
   }
 };
 
