@@ -46,6 +46,9 @@ const updateUser = async (req, res, next) => {
     if (err.name === 'ValidationError') {
       return next(new BadRequestError(BAD_REQ_ERR));
     }
+    if (err.code === 11000) {
+      return next(new ConflictError(CONFLICT_ERR));
+    }
     return next(new ServerError(SERV_ERR));
   }
 };
@@ -97,9 +100,15 @@ const login = async (req, res, next) => {
   }
 };
 
+const logout = (req, res) => {
+  res.clearCookie('jwt');
+  return res.status(200).send({ message: 'cookie delete' });
+};
+
 module.exports = {
   getUserInfo,
   updateUser,
   createUser,
   login,
+  logout,
 };
