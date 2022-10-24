@@ -9,7 +9,6 @@ const helmet = require('helmet');
 const {
   SERV_ERR,
   PORT_NUMBER,
-  ALLOW_ORIGIN,
   DATA_BASE,
 } = require('./utils/utils');
 
@@ -23,7 +22,9 @@ const app = express();
 
 app.use(
   cors({
-    origin: ALLOW_ORIGIN,
+    origin: 'http://localhost:3000/',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    allowedHeaders: 'Content-Type,Authorization',
     credentials: true,
   }),
 );

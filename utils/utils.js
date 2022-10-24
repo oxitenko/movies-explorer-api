@@ -6,7 +6,6 @@ const FORBIDDEN_ERR = 'У вас нет прав на это действие';
 const NOTFOUND_ERR = 'Данные не найдены';
 const SERV_ERR = 'Ошибка на сервере';
 const PORT_NUMBER = 3000;
-const ALLOW_ORIGIN = 'http://localhost:3000/';
 const DATA_BASE = 'mongodb://localhost:27017/bitfilmsdb';
 
 module.exports = {
@@ -18,6 +17,5 @@ module.exports = {
   NOTFOUND_ERR,
   SERV_ERR,
   PORT_NUMBER,
-  ALLOW_ORIGIN,
   DATA_BASE,
 };
