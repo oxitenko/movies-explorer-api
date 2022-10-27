@@ -11,8 +11,9 @@ const {
 } = require('../utils/utils');
 
 const getMovies = async (req, res, next) => {
+  const owner = req.user._id;
   try {
-    const movie = await Movie.find({});
+    const movie = await Movie.find({ owner });
     return res.status(200).send(movie);
   } catch (err) {
     return next(new ServerError(SERV_ERR));
