@@ -22,7 +22,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: 'https://movies-explorer-app.nomoredomains.icu/',
+    origin: 'https://movies-explorer-app.nomoredomains.icu',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     allowedHeaders: 'Content-Type,Authorization',
     credentials: true,
