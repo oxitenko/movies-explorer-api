@@ -63,7 +63,7 @@ const deleteMovie = async (req, res, next) => {
   const { movieId } = req.params;
   const id = req.user._id;
   try {
-    const movie = await Movie.findOneAndDelete(movieId);
+    const movie = await Movie.findByIdAndDelete(movieId);
     if (!movie) {
       return next(new NotFoundError(NOTFOUND_ERR));
     }
